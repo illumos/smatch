@@ -1339,6 +1339,12 @@ static struct symbol_list *sparse_file(const char *filename)
 	return sparse_tokenstream(token);
 }
 
+static int endswith(const char *str, const char *suffix)
+{
+	const char *found = strstr(str, suffix);
+	return (found && strcmp(found, suffix) == 0);
+}
+
 /*
  * This handles the "-include" directive etc: we're in global
  * scope, and all types/macros etc will affect all the following
@@ -1379,6 +1385,11 @@ struct symbol_list *sparse_initialize(int argc, char **argv, struct string_list 
 			args = handle_switch(arg+1, args);
 			continue;
 		}
+
+		if (endswith(arg, ".a") || endswith(arg, ".so") ||
+		    endswith(arg, ".so.1") || endswith(arg, ".o"))
+			continue;
+
 		add_ptr_list_notag(filelist, arg);
 	}
 	handle_switch_W_finalize();
