@@ -235,6 +235,14 @@ static struct symbol_op double_op = {
 	.class = CReal,
 };
 
+/* FIXME: this is not even slightly right. */
+static struct symbol_op complex_op = {
+	.type = KW_SPECIFIER,
+	.test = 0, //Set_T|Set_Signed|Set_Unsigned|Set_Short|Set_Vlong,
+	.set = 0, //Set_Double, //Set_T,Set_Double,
+	.class = CReal,
+};
+
 static struct symbol_op float_op = {
 	.type = KW_SPECIFIER | KW_SHORT,
 	.test = Set_T|Set_Signed|Set_Unsigned|Set_Short|Set_Long,
@@ -440,6 +448,7 @@ static struct init_keyword {
 	{ "unsigned",	NS_TYPEDEF, .op = &unsigned_op },
 	{ "__int128",	NS_TYPEDEF, .op = &int128_op },
 	{ "_Bool",	NS_TYPEDEF, .type = &bool_ctype, .op = &spec_op },
+	{ "_Complex",   NS_TYPEDEF, .op = &complex_op },
 
 	/* Predeclared types */
 	{ "__builtin_va_list", NS_TYPEDEF, .type = &ptr_ctype, .op = &spec_op },
