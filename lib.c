@@ -455,8 +455,9 @@ static void handle_arch_m64_finalize(void)
 	case ARCH_LP32:
 		/* default values */
 #if defined(__x86_64__) || defined (__i386)
-		add_pre_buffer("#weak_define __i386__ 1\n");
+ 		add_pre_buffer("#weak_define __i386__ 1\n");
  		add_pre_buffer("#weak_define __i386 1\n");
+ 		add_pre_buffer("#weak_define i386 1\n");
 #endif
 		return;
 	case ARCH_LP64:
@@ -465,6 +466,7 @@ static void handle_arch_m64_finalize(void)
 		size_t_ctype = &ulong_ctype;
 		ssize_t_ctype = &long_ctype;
 		add_pre_buffer("#weak_define __LP64__ 1\n");
+		add_pre_buffer("#weak_define __LP64 1\n");
 		add_pre_buffer("#weak_define _LP64 1\n");
 		goto case_64bit_common;
 	case ARCH_LLP64:
@@ -479,7 +481,7 @@ static void handle_arch_m64_finalize(void)
 		pointer_alignment = 8;
 #if defined(__x86_64__) || defined (__i386)
 		add_pre_buffer("#weak_define __x86_64__ 1\n");
- 		add_pre_buffer("#weak_define __x86_64 1\n");
+		add_pre_buffer("#weak_define __x86_64 1\n");
 #endif
 		break;
 	}
@@ -1032,6 +1034,21 @@ static void predefined_macros(void)
 	add_pre_buffer("#weak_define __ORDER_PDP_ENDIAN__ 3412\n");
 	add_pre_buffer("#weak_define __BYTE_ORDER__ __ORDER_%s_ENDIAN__\n",
 		arch_big_endian ? "BIG" : "LITTLE");
+
+	add_pre_buffer("#weak_define __PRAGMA_REDEFINE_EXTNAME 1\n");
+
+	/*
+	 * This is far from perfect...
+	 */
+#ifdef	__sun
+	add_pre_buffer("#weak_define __unix__ 1\n");
+	add_pre_buffer("#weak_define __unix 1\n");
+	add_pre_buffer("#weak_define unix 1\n");
+	add_pre_buffer("#weak_define __sun__ 1\n");
+	add_pre_buffer("#weak_define __sun 1\n");
+	add_pre_buffer("#weak_define sun 1\n");
+	add_pre_buffer("#weak_define __svr4__ 1\n");
+#endif
 }
 
 void declare_builtin_functions(void)
