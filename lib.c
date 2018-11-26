@@ -45,6 +45,11 @@
 #include "target.h"
 #include "version.h"
 
+static const char *progname;
+
+int sparse_errors = 0;
+int sparse_warnings = 0;
+
 int verbose, optimize, optimize_size, preprocessing;
 int die_if_error = 0;
 int parse_error;
@@ -111,8 +116,8 @@ static void do_warn(const char *type, struct position pos, const char * fmt, va_
 	vsprintf(buffer, fmt, args);	
 	name = stream_name(pos.stream);
 		
-	fprintf(stderr, "%s:%d:%d: %s%s\n",
-		name, pos.line, pos.pos, type, buffer);
+	fprintf(stderr, "%s: %s:%d:%d: %s%s\n",
+		progname, name, pos.line, pos.pos, type, buffer);
 }
 
 static int max_warnings = 100;
@@ -214,7 +219,7 @@ void die(const char *fmt, ...)
 	vsnprintf(buffer, sizeof(buffer), fmt, args);
 	va_end(args);
 
-	fprintf(stderr, "%s\n", buffer);
+	fprintf(stderr, "%s: %s\n", progname, buffer);
 	exit(1);
 }
 
@@ -1374,6 +1379,8 @@ struct symbol_list *sparse_initialize(int argc, char **argv, struct string_list 
 	// Initialize symbol stream first, so that we can add defines etc
 	init_symbols();
 	init_include_path();
+
+	progname = argv[0];
 
 	args = argv;
 	for (;;) {

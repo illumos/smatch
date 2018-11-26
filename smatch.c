@@ -53,6 +53,8 @@ int sm_nr_checks;
 
 bool __silence_warnings_for_stmt;
 
+const char *progname;
+
 typedef void (*reg_func) (int id);
 #define CK(_x) {.name = #_x, .func = &_x, .enabled = 0},
 static struct reg_func_info {
@@ -337,6 +339,8 @@ int main(int argc, char **argv)
 	sm_outfd = stdout;
 	sql_outfd = stdout;
 	caller_info_fd = stdout;
+
+	progname = argv[0];
 
 	parse_args(&argc, &argv);
 

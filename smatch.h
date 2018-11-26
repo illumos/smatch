@@ -214,6 +214,7 @@ extern FILE *sql_outfd;
 extern FILE *caller_info_fd;
 extern int sm_nr_checks;
 extern int sm_nr_errors;
+extern const char *progname;
 
 /*
  * How to use these routines:
@@ -232,7 +233,7 @@ extern int sm_nr_errors;
 
 static inline void sm_prefix(void)
 {
-	sm_printf("%s:%d %s() ", get_filename(), get_lineno(), get_function());
+	sm_printf("%s: %s:%d %s() ", progname, get_filename(), get_lineno(), get_function());
 }
 
 static inline void print_implied_debug_msg();
