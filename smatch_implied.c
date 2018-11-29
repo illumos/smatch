@@ -401,7 +401,8 @@ static int taking_too_long(void)
 		return 0;
 
 	if (!__inline_fn && printed != cur_func_sym) {
-		sm_perror("turning off implications after 60 seconds");
+		if (!is_skipped_function())
+			sm_perror("turning off implications after 60 seconds");
 		printed = cur_func_sym;
 	}
 	return 1;
