@@ -114,7 +114,6 @@ extern int preprocess_only;
 
 extern int Waddress;
 extern int Waddress_space;
-extern int Wbig_constants;
 extern int Wbitwise;
 extern int Wcast_to_as;
 extern int Wcast_truncate;
