@@ -1699,7 +1699,7 @@ static enum kind which_func(struct token *token,
 		if (!n || match_op(next->next, ';'))
 		if (!n || match_op(next->next, ';') || match_op(next->next, ','))
 			return Empty;
-		if (Wnon_ansi_function_declaration)
+		if (Wstrict_prototypes)
 			warning(next->pos,
 				"non-ANSI function declaration of function '%s'",
 				show_ident(*n));
@@ -2788,7 +2788,7 @@ static struct token *parse_k_r_arguments(struct token *token, struct symbol *dec
 {
 	struct symbol_list *args = NULL;
 
-	if (Wnon_ansi_function_declaration)
+	if (Wold_style_definition)
 		warning(token->pos, "non-ANSI definition of function '%s'", show_ident(decl->ident));
 
 	do {

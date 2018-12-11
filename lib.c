@@ -239,9 +239,9 @@ int Winit_cstring = 0;
 int Wenum_mismatch = 1;
 int Wsparse_error = 0;
 int Wmemcpy_max_count = 1;
-int Wnon_ansi_function_declaration = 1;
 int Wnon_pointer_null = 1;
 int Wold_initializer = 1;
+int Wold_style_definition = 1;
 int Wone_bit_signed_bitfield = 1;
 int Woverride_init = 1;
 int Woverride_init_all = 0;
@@ -252,6 +252,7 @@ int Wptr_subtraction_blows = 0;
 int Wreturn_void = 0;
 int Wshadow = 0;
 int Wsizeof_bool = 0;
+int Wstrict_prototypes = 1;
 int Wtautological_compare = 0;
 int Wtransparent_union = 0;
 int Wtypesign = 0;
@@ -544,9 +545,9 @@ static const struct warning {
 	{ "implicit-int", &Wimplicit_int },
 	{ "init-cstring", &Winit_cstring },
 	{ "memcpy-max-count", &Wmemcpy_max_count },
-	{ "non-ansi-function-declaration", &Wnon_ansi_function_declaration },
 	{ "non-pointer-null", &Wnon_pointer_null },
 	{ "old-initializer", &Wold_initializer },
+	{ "old-style-definition", &Wold_style_definition },
 	{ "one-bit-signed-bitfield", &Wone_bit_signed_bitfield },
 	{ "override-init", &Woverride_init },
 	{ "override-init-all", &Woverride_init_all },
@@ -555,6 +556,7 @@ static const struct warning {
 	{ "return-void", &Wreturn_void },
 	{ "shadow", &Wshadow },
 	{ "sizeof-bool", &Wsizeof_bool },
+	{ "strict-prototypes", &Wstrict_prototypes },
 	{ "pointer-arith", &Wpointer_arith },
 	{ "sparse-error", &Wsparse_error },
 	{ "tautological-compare", &Wtautological_compare },
