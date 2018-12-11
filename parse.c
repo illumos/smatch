@@ -1697,6 +1697,7 @@ static enum kind which_func(struct token *token,
 	if (next->special == ')') {
 		/* don't complain about those */
 		if (!n || match_op(next->next, ';'))
+		if (!n || match_op(next->next, ';') || match_op(next->next, ','))
 			return Empty;
 		if (Wnon_ansi_function_declaration)
 			warning(next->pos,
