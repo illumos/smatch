@@ -2762,7 +2762,10 @@ static void apply_k_r_types(struct symbol_list *argtypes, struct symbol *fn)
 			if (type->ident == arg->ident)
 				goto match;
 		} END_FOR_EACH_PTR(type);
-		sparse_error(arg->pos, "missing type declaration for parameter '%s'", show_ident(arg->ident));
+		if (Wimplicit_int) {
+			sparse_error(arg->pos, "missing type declaration for parameter '%s'",
+				show_ident(arg->ident));
+		}
 		continue;
 match:
 		type->used = 1;
