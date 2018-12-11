@@ -193,6 +193,9 @@ CK(check_implicit_dependencies)
 CK(check_wine_filehandles)
 CK(check_wine_WtoA)
 
+/* illumos specific */
+CK(check_all_func_returns)
+
 #include "check_list_local.h"
 
 CK(register_scope)
