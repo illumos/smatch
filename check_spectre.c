@@ -90,12 +90,12 @@ static int is_harmless(struct expression *expr)
 
 static unsigned long long get_max_by_type(struct expression *expr)
 {
-	sval_t max = {
-		.type = &ullong_ctype,
-		.uvalue = -1ULL,
-	};
 	struct symbol *type;
 	int cnt = 0;
+	sval_t max;
+
+	max.type = &ullong_ctype;
+	max.uvalue = -1ULL;
 
 	while (true) {
 		expr = strip_parens(expr);

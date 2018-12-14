@@ -86,10 +86,10 @@ static void pre_merge_hook(struct sm_state *sm)
 	struct smatch_state *extra;
 	struct range_list *rl;
 	sval_t dummy;
-	sval_t sval_100 = {
-		.type = &int_ctype,
-		.value = 100,
-	};
+	sval_t sval_100;
+
+	sval_100.value = 100;
+	sval_100.type = &int_ctype;
 
 	user = get_state(my_id, sm->name, sm->sym);
 	if (!user)
