@@ -173,7 +173,7 @@ static int match_option(const char *arg, const char *option)
 }
 
 #define OPTION(_x) do {					\
-	if (match_option((*argvp)[1], #_x)) { 		\
+	if (match_option((*argvp)[i], #_x)) { 		\
 		option_##_x = 1;			\
 	}                                               \
 } while (0)
