@@ -199,6 +199,7 @@ CK(check_wine_WtoA)
 
 /* illumos specific */
 CK(check_all_func_returns)
+CK(check_cmn_err)
 
 #include "check_list_local.h"
 
