@@ -43,9 +43,11 @@ static void match_end_func(struct symbol *sym)
 {
 	unsigned long size;
 
-	size = get_mem_kb();
-	if (size > max_size)
-		max_size = size;
+	if (option_mem) {
+		size = get_mem_kb();
+		if (size > max_size)
+			max_size = size;
+	}
 }
 
 unsigned long get_max_memory(void)
