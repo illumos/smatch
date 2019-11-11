@@ -141,7 +141,7 @@ char *get_fnptr_name(struct expression *expr)
 {
 	char *name;
 
-	if (is_zero(expr))
+	if (expr_is_zero(expr))
 		return NULL;
 
 	expr = strip_expr(expr);
@@ -255,6 +255,12 @@ static int can_hold_function_ptr(struct expression *expr)
 		if (!type)
 			return 0;
 	}
+	/* pointer to a pointer */
+	if (type->type == SYM_PTR || type->type == SYM_ARRAY) {
+		type = get_real_base_type(type);
+		if (!type)
+			return 0;
+	}
 	if (type->type == SYM_FN)
 		return 1;
 	if (type == &ulong_ctype && expr->type == EXPR_DEREF)
@@ -279,7 +285,8 @@ static void match_function_assign(struct expression *expr)
 		right = strip_expr(right->unop);
 
 	if (right->type != EXPR_SYMBOL &&
-	    right->type != EXPR_DEREF)
+	    right->type != EXPR_DEREF &&
+	    right->type != EXPR_CALL)
 		return;
 
 	if (!can_hold_function_ptr(right) ||

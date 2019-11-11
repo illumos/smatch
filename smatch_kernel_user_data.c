@@ -89,11 +89,6 @@ static void pre_merge_hook(struct sm_state *sm)
 	struct smatch_state *extra;
 	struct smatch_state *state;
 	struct range_list *rl;
-	sval_t dummy;
-	sval_t sval_100;
-
-	sval_100.value = 100;
-	sval_100.type = &int_ctype;
 
 	user = __get_state(my_id, sm->name, sm->sym);
 	if (!user || !estate_rl(user))
@@ -102,11 +97,11 @@ static void pre_merge_hook(struct sm_state *sm)
 	if (!extra)
 		return;
 	rl = rl_intersection(estate_rl(user), estate_rl(extra));
-	if (rl_to_sval(rl, &dummy))
-		rl = NULL;
 	state = alloc_estate_rl(clone_rl(rl));
 	if (estate_capped(user) || is_capped_var_sym(sm->name, sm->sym))
 		estate_set_capped(state);
+	if (estate_treat_untagged(user))
+		estate_set_treat_untagged(state);
 	set_state(my_id, sm->name, sm->sym, state);
 }
 
@@ -124,6 +119,8 @@ static void extra_nomod_hook(const char *name, struct symbol *sym, struct expres
 	new = alloc_estate_rl(rl);
 	if (estate_capped(user))
 		estate_set_capped(new);
+	if (estate_treat_untagged(user))
+		estate_set_treat_untagged(new);
 	set_state(my_id, name, sym, new);
 }
 
@@ -174,6 +171,28 @@ bool user_rl_capped(struct expression *expr)
 	state = get_state_expr(my_id, expr);
 	if (state)
 		return estate_capped(state);
+
+	if (get_user_rl(expr, &rl))
+		return false;  /* uncapped user data */
+
+	return true;  /* not actually user data */
+}
+
+bool user_rl_treat_untagged(struct expression *expr)
+{
+	struct smatch_state *state;
+	struct range_list *rl;
+	sval_t sval;
+
+	expr = strip_expr(expr);
+	if (!expr)
+		return false;
+	if (get_value(expr, &sval))
+		return true;
+
+	state = get_state_expr(my_id, expr);
+	if (state)
+		return estate_treat_untagged(state);
 
 	if (get_user_rl(expr, &rl))
 		return false;  /* uncapped user data */
@@ -546,7 +565,7 @@ static int handle_get_user(struct expression *expr)
 		return 0;
 
 	name = expr_to_var(expr->right);
-	if (!name || strcmp(name, "__val_gu") != 0)
+	if (!name || (strcmp(name, "__val_gu") != 0 && strcmp(name, "__gu_val") != 0))
 		goto free;
 	set_state_expr(my_id, expr->left, alloc_estate_whole(get_type(expr->left)));
 	ret = 1;
@@ -582,6 +601,8 @@ static bool handle_op_assign(struct expression *expr)
 		state = alloc_estate_rl(rl);
 		if (user_rl_capped(binop_expr))
 			estate_set_capped(state);
+		if (user_rl_treat_untagged(expr->left))
+			estate_set_treat_untagged(state);
 		set_state_expr(my_id, expr->left, state);
 		return true;
 	}
@@ -623,8 +644,11 @@ static void match_assign(struct expression *expr)
 
 	rl = cast_rl(get_type(expr->left), rl);
 	state = alloc_estate_rl(rl);
+
 	if (user_rl_capped(expr->right))
 		estate_set_capped(state);
+	if (user_rl_treat_untagged(expr->right))
+		estate_set_treat_untagged(state);
 	set_state_expr(my_id, expr->left, state);
 
 	return;
@@ -660,14 +684,9 @@ static void handle_eq_noteq(struct expression *expr)
 static struct range_list *strip_negatives(struct range_list *rl)
 {
 	sval_t min = rl_min(rl);
-	sval_t minus_one;
-	sval_t over;
+	sval_t minus_one = { .type = rl_type(rl), .value = -1 };
+	sval_t over = { .type = rl_type(rl), .value = INT_MAX + 1ULL };
 	sval_t max = sval_type_max(rl_type(rl));
-
-	minus_one.type = rl_type(rl);
-	minus_one.value = INT_MAX + 1ULL;
-	over.type = rl_type(rl);
-	over.value = -1;
 
 	if (!rl)
 		return NULL;
@@ -1020,8 +1039,10 @@ static char *get_user_rl_str(struct expression *expr, struct symbol *type)
 	if (!get_user_rl(expr, &rl))
 		return NULL;
 	rl = cast_rl(type, rl);
-	snprintf(buf, sizeof(buf), "%s%s",
-		 show_rl(rl), user_rl_capped(expr) ? "[c]" : "");
+	snprintf(buf, sizeof(buf), "%s%s%s",
+		 show_rl(rl),
+		 user_rl_capped(expr) ? "[c]" : "",
+		 user_rl_treat_untagged(expr) ? "[u]" : "");
 	return buf;
 }
 
@@ -1093,8 +1114,9 @@ static void struct_member_callback(struct expression *call, int param, char *pri
 	if (!rl)
 		return;
 
-	snprintf(buf, sizeof(buf), "%s%s", show_rl(rl),
-		 estate_capped(sm->state) ? "[c]" : "");
+	snprintf(buf, sizeof(buf), "%s%s%s", show_rl(rl),
+		 estate_capped(sm->state) ? "[c]" : "",
+		 estate_treat_untagged(sm->state) ? "[u]" : "");
 	sql_insert_caller_info(call, USER_DATA, param, printed_name, buf);
 }
 
@@ -1129,6 +1151,13 @@ free:
 static bool param_data_capped(const char *value)
 {
 	if (strstr(value, ",c") || strstr(value, "[c"))
+		return true;
+	return false;
+}
+
+static bool param_data_treat_untagged(const char *value)
+{
+	if (strstr(value, ",u") || strstr(value, "[u"))
 		return true;
 	return false;
 }
@@ -1180,6 +1209,8 @@ static void set_param_user_data(const char *name, struct symbol *sym, char *key,
 	state = alloc_estate_rl(rl);
 	if (param_data_capped(value) || is_capped(expr))
 		estate_set_capped(state);
+	if (param_data_treat_untagged(value) || sym->ctype.as == 5)
+		estate_set_treat_untagged(state);
 	set_state(my_id, fullname, sym, state);
 }
 
@@ -1252,6 +1283,8 @@ static void set_to_user_data(struct expression *expr, char *key, char *value)
 	state = alloc_estate_rl(rl);
 	if (param_data_capped(value))
 		estate_set_capped(state);
+	if (param_data_treat_untagged(value))
+		estate_set_treat_untagged(state);
 	set_state(my_id, name, sym, state);
 free:
 	free_string(name);
@@ -1359,9 +1392,10 @@ static void param_set_to_user_data(int return_id, char *return_ranges, struct ex
 		if (strcmp(param_name, "$") == 0)  /* The -1 param is handled after the loop */
 			continue;
 
-		snprintf(buf, sizeof(buf), "%s%s",
+		snprintf(buf, sizeof(buf), "%s%s%s",
 			 show_rl(estate_rl(sm->state)),
-			 estate_capped(sm->state) ? "[c]" : "");
+			 estate_capped(sm->state) ? "[c]" : "",
+			 estate_treat_untagged(sm->state) ? "[u]" : "");
 		sql_insert_return_states(return_id, return_ranges,
 					 func_gets_user_data ? USER_DATA_SET : USER_DATA,
 					 param, param_name, buf);
@@ -1381,9 +1415,10 @@ static void param_set_to_user_data(int return_id, char *return_ranges, struct ex
 			return_found = true;
 		if (strcmp(param_name, "*$") == 0)
 			pointed_at_found = true;
-		snprintf(buf, sizeof(buf), "%s%s",
+		snprintf(buf, sizeof(buf), "%s%s%s",
 			 show_rl(estate_rl(sm->state)),
-			 estate_capped(sm->state) ? "[c]" : "");
+			 estate_capped(sm->state) ? "[c]" : "",
+			 estate_treat_untagged(sm->state) ? "[u]" : "");
 		sql_insert_return_states(return_id, return_ranges,
 					 func_gets_user_data ? USER_DATA_SET : USER_DATA,
 					 -1, param_name, buf);
@@ -1391,8 +1426,10 @@ static void param_set_to_user_data(int return_id, char *return_ranges, struct ex
 
 	/* This if for "return ntohl(foo);" */
 	if (!return_found && get_user_rl(expr, &rl)) {
-		snprintf(buf, sizeof(buf), "%s%s",
-			 show_rl(rl), user_rl_capped(expr) ? "[c]" : "");
+		snprintf(buf, sizeof(buf), "%s%s%s",
+			 show_rl(rl),
+			 user_rl_capped(expr) ? "[c]" : "",
+			 user_rl_treat_untagged(expr) ? "[u]" : "");
 		sql_insert_return_states(return_id, return_ranges,
 					 func_gets_user_data ? USER_DATA_SET : USER_DATA,
 					 -1, "$", buf);
@@ -1512,3 +1549,4 @@ void register_kernel_user_data2(int id)
 		return;
 	select_caller_info_hook(set_called, INTERNAL);
 }
+

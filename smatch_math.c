@@ -947,8 +947,6 @@ struct range_list *var_to_absolute_rl(struct expression *expr)
 		state = get_real_absolute_state(expr);
 		if (state && state->data && !estate_is_whole(state))
 			return clone_rl(estate_rl(state));
-		if (get_local_rl(expr, &rl) && !is_whole_rl(rl))
-			return rl;
 		if (get_mtag_rl(expr, &rl))
 			return rl;
 		if (get_db_type_rl(expr, &rl) && !is_whole_rl(rl))
@@ -1008,8 +1006,6 @@ static bool handle_variable(struct expression *expr, int implied, int *recurse_c
 		if (!state) {
 			if (implied == RL_HARD)
 				return false;
-			if (get_local_rl(expr, res))
-				return true;
 			if (get_mtag_rl(expr, res))
 				return true;
 			if (get_db_type_rl(expr, res))
@@ -1060,8 +1056,6 @@ static bool handle_variable(struct expression *expr, int implied, int *recurse_c
 			return true;
 		}
 
-		if (get_local_rl(expr, res))
-			return true;
 		if (get_mtag_rl(expr, res))
 			return true;
 		if (get_db_type_rl(expr, res))
@@ -1771,7 +1765,7 @@ int known_condition_false(struct expression *expr)
 	if (!expr)
 		return 0;
 
-	if (is_zero(expr))
+	if (expr_is_zero(expr))
 		return 1;
 
 	return 0;
