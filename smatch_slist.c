@@ -41,8 +41,9 @@ const char *show_sm(struct sm_state *sm)
 	if (!sm)
 		return "<none>";
 
-	pos = snprintf(buf, sizeof(buf), "[%s] '%s' = '%s'",
-		       check_name(sm->owner), sm->name, show_state(sm->state));
+	pos = snprintf(buf, sizeof(buf), "[%s] %s = '%s'%s",
+		       check_name(sm->owner), sm->name, show_state(sm->state),
+		       sm->merged ? " [merged]" : "");
 	if (pos > sizeof(buf))
 		goto truncate;
 
@@ -741,7 +742,7 @@ static void match_states_stree(struct stree **one, struct stree **two)
 
 static void call_pre_merge_hooks(struct stree **one, struct stree **two)
 {
-	struct sm_state *sm, *other;
+	struct sm_state *sm, *cur;
 	struct stree *new;
 
 	__in_unmatched_hook++;
@@ -749,10 +750,10 @@ static void call_pre_merge_hooks(struct stree **one, struct stree **two)
 	__set_fake_cur_stree_fast(*one);
 	__push_fake_cur_stree();
 	FOR_EACH_SM(*two, sm) {
-		other = get_sm_state(sm->owner, sm->name, sm->sym);
-		if (other == sm)
+		cur = get_sm_state(sm->owner, sm->name, sm->sym);
+		if (cur == sm)
 			continue;
-		call_pre_merge_hook(sm);
+		call_pre_merge_hook(cur, sm);
 	} END_FOR_EACH_SM(sm);
 	new = __pop_fake_cur_stree();
 	overwrite_stree(new, one);
@@ -762,10 +763,10 @@ static void call_pre_merge_hooks(struct stree **one, struct stree **two)
 	__set_fake_cur_stree_fast(*two);
 	__push_fake_cur_stree();
 	FOR_EACH_SM(*one, sm) {
-		other = get_sm_state(sm->owner, sm->name, sm->sym);
-		if (other == sm)
+		cur = get_sm_state(sm->owner, sm->name, sm->sym);
+		if (cur == sm)
 			continue;
-		call_pre_merge_hook(sm);
+		call_pre_merge_hook(cur, sm);
 	} END_FOR_EACH_SM(sm);
 	new = __pop_fake_cur_stree();
 	overwrite_stree(new, two);

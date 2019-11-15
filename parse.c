@@ -2819,10 +2819,9 @@ static struct token *parse_function_body(struct token *token, struct symbol *dec
 	function_computed_target_list = NULL;
 	function_computed_goto_list = NULL;
 
-	if (Wexternal_function_has_definition &&
-		decl->ctype.modifiers & MOD_EXTERN &&
-		!(decl->ctype.modifiers & MOD_INLINE)) {
-		warning(decl->pos, "function '%s' with external linkage has definition", show_ident(decl->ident));
+	if ((decl->ctype.modifiers & (MOD_EXTERN|MOD_INLINE)) == MOD_EXTERN) {
+		if (Wexternal_function_has_definition)
+			warning(decl->pos, "function '%s' with external linkage has definition", show_ident(decl->ident));
 	}
 
 	if (!(decl->ctype.modifiers & MOD_STATIC))

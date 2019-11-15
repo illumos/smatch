@@ -157,7 +157,7 @@ typedef struct smatch_state *(merge_func_t)(struct smatch_state *s1, struct smat
 typedef struct smatch_state *(unmatched_func_t)(struct sm_state *state);
 void add_merge_hook(int client_id, merge_func_t *func);
 void add_unmatched_state_hook(int client_id, unmatched_func_t *func);
-void add_pre_merge_hook(int client_id, void (*hook)(struct sm_state *sm));
+void add_pre_merge_hook(int client_id, void (*hook)(struct sm_state *cur, struct sm_state *other));
 typedef void (scope_hook)(void *data);
 void add_scope_hook(scope_hook *hook, void *data);
 typedef void (func_hook)(const char *fn, struct expression *expr, void *data);
@@ -206,6 +206,7 @@ extern int final_pass;
 extern struct symbol *cur_func_sym;
 extern int option_debug;
 extern int local_debug;
+bool debug_implied(void);
 extern int option_info;
 extern int option_spammy;
 extern int option_timeout;
@@ -403,6 +404,7 @@ int get_absolute_min(struct expression *expr, sval_t *sval);
 int get_absolute_max(struct expression *expr, sval_t *sval);
 int parse_call_math(struct expression *expr, char *math, sval_t *val);
 int parse_call_math_rl(struct expression *call, const char *math, struct range_list **rl);
+const char *get_allocation_math(struct expression *expr);
 char *get_value_in_terms_of_parameter_math(struct expression *expr);
 char *get_value_in_terms_of_parameter_math_var_sym(const char *var, struct symbol *sym);
 int expr_is_zero(struct expression *expr);
@@ -412,6 +414,8 @@ int implied_condition_true(struct expression *expr);
 int implied_condition_false(struct expression *expr);
 int can_integer_overflow(struct symbol *type, struct expression *expr);
 void clear_math_cache(void);
+void set_fast_math_only(void);
+void clear_fast_math_only(void);
 
 int is_array(struct expression *expr);
 struct expression *get_array_base(struct expression *expr);
@@ -775,7 +779,7 @@ struct smatch_state *__client_merge_function(int owner,
 					     struct smatch_state *s1,
 					     struct smatch_state *s2);
 struct smatch_state *__client_unmatched_state_function(struct sm_state *sm);
-void call_pre_merge_hook(struct sm_state *sm);
+void call_pre_merge_hook(struct sm_state *cur, struct sm_state *other);
 void __push_scope_hooks(void);
 void __call_scope_hooks(void);
 
@@ -1058,6 +1062,8 @@ void __add_return_to_param_mapping(struct expression *assign, const char *return
 char *map_call_to_param_name_sym(struct expression *expr, struct symbol **sym);
 
 /* smatch_comparison.c */
+#define UNKNOWN_COMPARISON 0
+#define IMPOSSIBLE_COMPARISON -1
 struct compare_data {
 	/* The ->left and ->right expression pointers might be NULL (I'm lazy) */
 	struct expression *left;
@@ -1075,7 +1081,7 @@ struct smatch_state *alloc_compare_state(
 		int comparison,
 		struct expression *right,
 		const char *right_var, struct var_sym_list *right_vsl);
-int filter_comparison(int orig, int op);
+int comparison_intersection(int orig, int op);
 int merge_comparisons(int one, int two);
 int combine_comparisons(int left_compare, int right_compare);
 int state_to_comparison(struct smatch_state *state);
