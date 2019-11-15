@@ -2823,7 +2823,6 @@ static struct token *parse_function_body(struct token *token, struct symbol *dec
 		if (Wexternal_function_has_definition)
 			warning(decl->pos, "function '%s' with external linkage has definition", show_ident(decl->ident));
 	}
-
 	if (!(decl->ctype.modifiers & MOD_STATIC))
 		decl->ctype.modifiers |= MOD_EXTERN;
 
