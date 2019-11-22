@@ -383,6 +383,12 @@ static struct symbol_list *sparse_initial(void)
 	return sparse_tokenstream(pre_buffer_begin);
 }
 
+static int endswith(const char *str, const char *suffix)
+{
+	const char *found = strstr(str, suffix);
+	return (found && strcmp(found, suffix) == 0);
+}
+
 struct symbol_list *sparse_initialize(int argc, char **argv, struct string_list **filelist)
 {
 	char **args;
@@ -409,6 +415,11 @@ struct symbol_list *sparse_initialize(int argc, char **argv, struct string_list 
 			args = handle_switch(arg+1, args);
 			continue;
 		}
+
+		if (endswith(arg, ".a") || endswith(arg, ".so") ||
+		    endswith(arg, ".so.1") || endswith(arg, ".o"))
+			continue;
+
 		add_ptr_list(filelist, arg);
 	}
 	handle_switch_finalize();
