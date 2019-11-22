@@ -139,9 +139,9 @@ static void do_warn(const char *type, struct position pos, const char * fmt, va_
 	vsprintf(buffer, fmt, args);	
 
 	fflush(stdout);
-	fprintf(stderr, "%s:%d:%d: %s%s%s\n",
-		show_stream_name(pos), pos.line, pos.pos,
-		diag_prefix, type, buffer);
+	fprintf(stderr, "%s: %s:%d:%d: %s%s\n",
+		diag_prefix, show_stream_name(pos), pos.line, pos.pos,
+		type, buffer);
 }
 
 static int show_info = 1;
@@ -245,7 +245,7 @@ void die(const char *fmt, ...)
 	vsnprintf(buffer, sizeof(buffer), fmt, args);
 	va_end(args);
 
-	fprintf(stderr, "%s%s\n", diag_prefix, buffer);
+	fprintf(stderr, "%s: %s\n", diag_prefix, buffer);
 	exit(1);
 }
 
@@ -393,6 +393,8 @@ struct symbol_list *sparse_initialize(int argc, char **argv, struct string_list 
 	// Initialize symbol stream first, so that we can add defines etc
 	init_symbols();
 	init_include_path();
+
+	diag_prefix = argv[0];
 
 	// initialize the default target to the native 'machine'
 	target_config(MACH_NATIVE);

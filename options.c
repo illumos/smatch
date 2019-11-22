@@ -472,10 +472,10 @@ static int handle_fdiagnostic_prefix(const char *arg, const char *opt, const str
 {
 	switch (*opt) {
 	case '\0':
-		diag_prefix = "sparse: ";
+		diag_prefix = "sparse";
 		return 1;
 	case '=':
-		diag_prefix = xasprintf("%s: ", opt+1);
+		diag_prefix = xasprintf("%s", opt+1);
 		return 1;
 	default:
 		return 0;
