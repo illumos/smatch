@@ -1326,6 +1326,7 @@ static void predefined_macros(void)
 		break;
 	case ARCH_LP64:
 		predefine("__LP64__", 1, "1");
+		predefine("__LP64", 1, "1");
 		predefine("_LP64", 1, "1");
 		break;
 	case ARCH_LLP64:
@@ -1399,8 +1400,21 @@ static void predefined_macros(void)
 	case MACH_I386:
 		predefine("__i386__", 1, "1");
 		predefine("__i386", 1, "1");
+		predefine("i386", 1, "1");
 		break;
 	}
+
+	predefine("__PRAGMA_REDEFINE_EXTNAME", 1, "1");
+
+#ifdef	__sun
+	predefine("__unix__", 1, "1");
+	predefine("__unix", 1, "1");
+	predefine("unix", 1, "1");
+	predefine("__sun__", 1, "1");
+	predefine("__sun", 1, "1");
+	predefine("sun", 1, "1");
+	predefine("__svr4__", 1, "1");
+#endif
 }
 
 static void create_builtin_stream(void)
