@@ -13,6 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see http://www.gnu.org/copyleft/gpl.txt
+ *
+ * Copyright 2019 Joyent, Inc.
  */
 
 #include <stdio.h>
@@ -51,6 +53,8 @@ int sm_nr_errors;
 int sm_nr_checks;
 
 bool __silence_warnings_for_stmt;
+
+const char *progname;
 
 typedef void (*reg_func) (int id);
 #define CK(_x) {.name = #_x, .func = &_x, .enabled = 0},
@@ -333,6 +337,8 @@ int main(int argc, char **argv)
 	sm_outfd = stdout;
 	sql_outfd = stdout;
 	caller_info_fd = stdout;
+
+	progname = argv[0];
 
 	parse_args(&argc, &argv);
 
