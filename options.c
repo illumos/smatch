@@ -963,6 +963,10 @@ static char **handle_param(char *arg, char **next)
 {
 	char *value = NULL;
 
+	/* Ignore smatch's --param-mapper */
+	if (strcmp(arg, "-mapper") == 0)
+		return next;
+
 	/* For now just skip any '--param=*' or '--param *' */
 	if (*arg == '\0') {
 		value = *++next;
