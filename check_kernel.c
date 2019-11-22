@@ -23,18 +23,9 @@
 #include "smatch.h"
 #include "smatch_extra.h"
 
-static sval_t err_ptr_min = {
-	.type = &ptr_ctype,
-	.value = -4095,
-};
-static sval_t err_ptr_max = {
-	.type = &ptr_ctype,
-	.value = -1,
-};
-static sval_t null_ptr = {
-	.type = &ptr_ctype,
-	.value = 0,
-};
+static sval_t err_ptr_min;
+static sval_t err_ptr_max;
+static sval_t null_ptr;
 
 static int implied_err_cast_return(struct expression *call, void *unused, struct range_list **rl)
 {
@@ -53,18 +44,18 @@ static void hack_ERR_PTR(struct symbol *sym)
 	struct symbol *arg;
 	struct smatch_state *estate;
 	struct range_list *after;
-	sval_t low_error = {
-		.type = &long_ctype,
-		.value = -4095,
-	};
-	sval_t minus_one = {
-		.type = &long_ctype,
-		.value = -1,
-	};
-	sval_t zero = {
-		.type = &long_ctype,
-		.value = 0,
-	};
+	sval_t low_error;
+	sval_t minus_one;
+	sval_t zero;
+
+	low_error.type = &long_ctype;
+	low_error.value = -4095;
+
+	minus_one.type = &long_ctype;
+	minus_one.value = -1;
+
+	zero.type = &long_ctype;
+	zero.value = 0;
 
 	if (!sym || !sym->ident)
 		return;
@@ -238,15 +229,12 @@ static int match_fls(struct expression *call, void *unused, struct range_list **
 	struct expression *arg;
 	struct range_list *arg_rl;
 	sval_t zero = {};
-	sval_t start = {
-		.type = &int_ctype,
-		.value = 0,
-	};
-	sval_t end = {
-		.type = &int_ctype,
-		.value = 32,
-	};
-	sval_t sval;
+	sval_t start, end, sval;
+
+	start.type = &int_ctype;
+	start.value = 0;
+	end.type = &int_ctype;
+	end.value = 32;
 
 	arg = get_argument_from_call_expr(call->args, 0);
 	if (!get_implied_rl(arg, &arg_rl))
@@ -437,6 +425,13 @@ void check_kernel(int id)
 {
 	if (option_project != PROJ_KERNEL)
 		return;
+
+	err_ptr_min.type = &ptr_ctype;
+	err_ptr_min.value = -4095;
+	err_ptr_max.type = &ptr_ctype;
+	err_ptr_max.value = -1l;
+	null_ptr.type = &ptr_ctype;
+	null_ptr.value = 0;
 
 	err_ptr_min = sval_cast(&ptr_ctype, err_ptr_min);
 	err_ptr_max = sval_cast(&ptr_ctype, err_ptr_max);
