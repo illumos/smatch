@@ -140,8 +140,8 @@ static void do_warn(const char *type, struct position pos, const char * fmt, va_
 	name = stream_name(pos.stream);
 		
 	fflush(stdout);
-	fprintf(stderr, "%s:%d:%d: %s%s%s\n",
-		name, pos.line, pos.pos, diag_prefix, type, buffer);
+	fprintf(stderr, "%s: %s:%d:%d: %s%s\n",
+		diag_prefix, name, pos.line, pos.pos, type, buffer);
 }
 
 unsigned int fmax_warnings = 100;
@@ -246,7 +246,7 @@ void die(const char *fmt, ...)
 	vsnprintf(buffer, sizeof(buffer), fmt, args);
 	va_end(args);
 
-	fprintf(stderr, "%s%s\n", diag_prefix, buffer);
+	fprintf(stderr, "%s: %s\n", diag_prefix, buffer);
 	exit(1);
 }
 
@@ -896,10 +896,10 @@ static int handle_fdiagnostic_prefix(const char *arg, const char *opt, const str
 {
 	switch (*opt) {
 	case '\0':
-		diag_prefix = "sparse: ";
+		diag_prefix = "sparse";
 		return 1;
 	case '=':
-		diag_prefix = xasprintf("%s: ", opt+1);
+		diag_prefix = xasprintf("%s", opt+1);
 		return 1;
 	default:
 		return 0;
@@ -1537,6 +1537,8 @@ struct symbol_list *sparse_initialize(int argc, char **argv, struct string_list 
 	// Initialize symbol stream first, so that we can add defines etc
 	init_symbols();
 	init_include_path();
+
+	diag_prefix = argv[0];
 
 	args = argv;
 	for (;;) {
