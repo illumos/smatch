@@ -2132,14 +2132,13 @@ static void handle_MOD_condition(struct expression *expr)
 	struct range_list *true_rl;
 	struct range_list *false_rl = NULL;
 	sval_t right;
-	sval_t zero = {
-		.value = 0,
-	};
+	sval_t zero = { 0, };
 
 	if (!get_implied_value(expr->right, &right) || right.value == 0)
 		return;
 	get_absolute_rl(expr->left, &orig_rl);
 
+	zero.value = 0;
 	zero.type = rl_type(orig_rl);
 
 	/* We're basically dorking around the min and max here */

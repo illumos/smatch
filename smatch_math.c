@@ -183,9 +183,12 @@ static bool handle_minus_preop(struct expression *expr, int implied, int *recurs
 	struct range_list *rl;
 	struct range_list *ret = NULL;
 	struct symbol *type;
-	sval_t neg_one = { .value = -1 };
-	sval_t zero = { .value = 0 };
+	sval_t neg_one = { 0 };
+	sval_t zero = { 0 };
 	sval_t sval = {};
+
+	neg_one.value = -1;
+	zero.value = 0;
 
 	if (!get_rl_sval(expr->unop, implied, recurse_cnt, &rl, &sval))
 		return false;
