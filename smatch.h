@@ -209,6 +209,7 @@ extern int local_debug;
 bool debug_implied(void);
 extern int option_info;
 extern int option_spammy;
+extern int option_timeout;
 extern char *trace_variable;
 extern struct stree *global_states;
 int is_skipped_function(void);
