@@ -49,6 +49,7 @@ int option_mem;
 char *option_datadir_str;
 int option_fatal_checks;
 int option_succeed;
+int option_timeout;
 int SMATCH_EXTRA;
 
 FILE *sm_outfd;
@@ -228,6 +229,12 @@ void parse_args(int *argcp, char ***argvp)
 
 		if (strncmp((*argvp)[i], "--function=", 11) == 0)
 			option_process_function = (*argvp)[i] + 11;
+
+		if (strncmp((*argvp)[i], "--timeout=", 10) == 0) {
+			if (sscanf((*argvp)[i] + 10, "%d",
+			    &option_timeout) != 1)
+				sm_fatal("invalid option %s", (*argvp)[i]);
+		}
 
 		OPTION(fatal_checks);
 		OPTION(spammy);

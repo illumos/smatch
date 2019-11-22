@@ -13,6 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see http://www.gnu.org/copyleft/gpl.txt
+ *
+ * Copyright 2019 Joyent, Inc.
  */
 
 /*
@@ -462,13 +464,14 @@ static int going_too_slow(void)
 		return 1;
 	}
 
-	if (time_parsing_function() < 60) {
+	if (!option_timeout || time_parsing_function() < option_timeout) {
 		implications_off = false;
 		return 0;
 	}
 
 	if (!__inline_fn && printed != cur_func_sym) {
-		sm_perror("turning off implications after 60 seconds");
+		if (!is_skipped_function())
+			sm_perror("turning off implications after %d seconds", option_timeout);
 		printed = cur_func_sym;
 	}
 	implications_off = true;
@@ -680,7 +683,7 @@ static void separate_and_filter(struct sm_state *sm, int comparison, struct rang
 
 	gettimeofday(&time_after, NULL);
 	sec = time_after.tv_sec - time_before.tv_sec;
-	if (sec > 20)
+	if (option_timeout && sec > option_timeout)
 		sm_perror("Function too hairy.  Ignoring implications after %d seconds.", sec);
 }
 

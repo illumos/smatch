@@ -297,6 +297,7 @@ bool debug_implied(void);
 bool debug_on(const char *check_name, const char *var);
 extern int option_info;
 extern int option_spammy;
+extern int option_timeout;
 extern int option_pedantic;
 extern int option_print_names;
 extern char *trace_variable;
