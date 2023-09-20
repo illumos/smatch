@@ -30,7 +30,7 @@ enum flag_type {
 };
 
 int die_if_error = 0;
-int do_output = 1;
+int do_output = 0;
 int gcc_major = __GNUC__;
 int gcc_minor = __GNUC_MINOR__;
 int gcc_patchlevel = __GNUC_PATCHLEVEL__;
