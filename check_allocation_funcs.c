@@ -76,7 +76,8 @@ static void match_end_func(struct symbol *sym)
 
 void check_allocation_funcs(int id)
 {
-	if (!option_info || option_project != PROJ_KERNEL)
+	if (!option_info || option_project != PROJ_KERNEL ||
+	    option_project != PROJ_ILLUMOS_KERNEL)
 		return;
 
 	my_id = id;

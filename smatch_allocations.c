@@ -42,6 +42,11 @@ static struct alloc_fn_info alloc_fns[] = {
 	{ },
 };
 
+static struct alloc_fn_info illumos_kernel_alloc_funcs[] = {
+	{"kmem_alloc", "$0"},
+	{"kmem_zalloc", "$0", .zeroed=true},
+};
+
 static struct alloc_fn_info kernel_alloc_funcs[] = {
 	{"__alloc_skb", "$0"},
 
@@ -171,10 +176,19 @@ void register_allocations(int id)
 
 	my_id = id;
 
-	if (option_project == PROJ_KERNEL)
+	switch (option_project) {
+	case PROJ_ILLUMOS_KERNEL:
+		info = illumos_kernel_alloc_funcs;
+		break;
+
+	case PROJ_KERNEL:
 		info = kernel_alloc_funcs;
-	else
+		break;
+
+	default:
 		info = alloc_fns;
+		break;
+	}
 
 	while (info->name) {
 		add_function_param_key_hook(info->name, &match_alloc, -1, "$", info);

@@ -38,6 +38,8 @@ static int my_id;
 
 #define __GFP_NOFAIL 0x800
 
+#define	KM_SLEEP	0x0000
+
 STATE(null);
 STATE(ok);
 STATE(uninitialized);
@@ -235,8 +237,14 @@ static int called_with_no_fail(struct expression *call, int param)
 	if (call->type != EXPR_CALL)
 		return 0;
 	arg = get_argument_from_call_expr(call->args, param);
-	if (get_value(arg, &sval) && (sval.uvalue & __GFP_NOFAIL))
-		return 1;
+	if (get_value(arg, &sval)) {
+		if (option_project == PROJ_ILLUMOS_KERNEL &&
+		    sval.uvalue == KM_SLEEP)
+			return 1;
+		if (option_project == PROJ_KERNEL &&
+		    sval.uvalue & __GFP_NOFAIL)
+			return 1;
+	}
 	return 0;
 }
 
@@ -251,13 +259,13 @@ static void match_assign_returns_null(const char *fn, struct expression *expr, v
 	set_state_expr(my_id, expr->left, state);
 }
 
-static void register_allocation_funcs(void)
+static void register_allocation_funcs(char *name)
 {
 	struct token *token;
 	const char *func;
 	int arg;
 
-	token = get_tokens_file("kernel.allocation_funcs_gfp");
+	token = get_tokens_file(name);
 	if (!token)
 		return;
 	if (token_type(token) != TOKEN_STREAMBEGIN)
@@ -294,5 +302,7 @@ void check_deref(int id)
 	add_hook(&match_assign, ASSIGNMENT_HOOK);
 	add_hook(&match_assigns_address, ASSIGNMENT_HOOK);
 	if (option_project == PROJ_KERNEL)
-		register_allocation_funcs();
+		register_allocation_funcs("kernel.allocation_funcs_gfp");
+	if (option_project == PROJ_ILLUMOS_KERNEL)
+		register_allocation_funcs("illumos_kernel.allocation_funcs_gfp");
 }

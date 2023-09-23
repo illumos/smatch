@@ -24,6 +24,8 @@ static int my_id;
 
 #define __GFP_NOFAIL 0x8000u
 
+#define	KM_SLEEP	0x0000
+
 STATE(null);
 
 static unsigned long GFP_NOFAIL(void)
@@ -128,8 +130,14 @@ static int called_with_no_fail(struct expression *call, int param)
 	if (call->type != EXPR_CALL)
 		return 0;
 	arg = get_argument_from_call_expr(call->args, param);
-	if (get_value(arg, &sval) && (sval.uvalue & GFP_NOFAIL()))
-		return 1;
+	if (get_value(arg, &sval)) {
+		if (option_project == PROJ_ILLUMOS_KERNEL &&
+		    sval.uvalue == KM_SLEEP)
+			return 1;
+		if (option_project == PROJ_KERNEL &&
+		    sval.uvalue & GFP_NOFAIL())
+			return 1;
+	}
 	return 0;
 }
 

@@ -330,6 +330,8 @@ static int is_ignored_function(void)
 		return 1;
 	if (sym_name_is("kmem_alloc", expr->fn))
 		return 1;
+	if (sym_name_is("kmem_zalloc", expr->fn))
+		return 1;
 	if (sym_name_is("alloc_pages", expr->fn))
 		return 1;
 

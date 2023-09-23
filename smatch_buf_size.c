@@ -178,6 +178,8 @@ static int get_initializer_size(struct expression *expr)
 	}
 	case EXPR_SYMBOL:
 		return get_array_size(expr);
+	default:
+		break;
 	}
 	return 0;
 }
@@ -1174,6 +1176,10 @@ void register_buf_size(int id)
 		add_allocation_function("bitmap_zalloc", &match_bitmap_alloc, 0);
 		add_allocation_function("devm_bitmap_alloc", &match_bitmap_alloc, 1);
 		add_allocation_function("devm_bitmap_zalloc", &match_bitmap_alloc, 1);
+	}
+	if (option_project == PROJ_ILLUMOS_KERNEL) {
+		add_allocation_function("kmem_alloc", &match_alloc, 0);
+		add_allocation_function("kmem_zalloc", &match_alloc, 0);
 	}
 
 	add_allocation_function("strndup", match_strndup, 0);

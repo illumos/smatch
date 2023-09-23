@@ -32,6 +32,11 @@ STATE(fresh);
 
 struct alloc_info *alloc_funcs;
 
+struct alloc_info illumos_kernel_allocation_funcs[] = {
+	{"kmem_alloc", 0},
+	{"kmem_zalloc", 0},
+};
+
 struct alloc_info kernel_allocation_funcs[] = {
 	{"kmalloc", 0},
 	{"kmalloc_node", 0},
@@ -133,7 +138,7 @@ bool is_fresh_alloc(struct expression *expr)
 		return true;
 	i = -1;
 	while (alloc_funcs[++i].fn) {
-		if (sym_name_is(kernel_allocation_funcs[i].fn, expr->fn))
+		if (sym_name_is(alloc_funcs[i].fn, expr->fn))
 			return true;
 	}
 	return false;
@@ -213,10 +218,19 @@ void register_fresh_alloc(int id)
 
 	my_id = id;
 
-	if (option_project == PROJ_KERNEL)
+	switch (option_project) {
+	case PROJ_ILLUMOS_KERNEL:
+		alloc_funcs = illumos_kernel_allocation_funcs;
+		break;
+
+	case PROJ_KERNEL:
 		alloc_funcs = kernel_allocation_funcs;
-	else
+		break;
+
+	default:
 		alloc_funcs = general_allocation_funcs;
+		break;
+	}
 
 	i = -1;
 	while (alloc_funcs[++i].fn)
