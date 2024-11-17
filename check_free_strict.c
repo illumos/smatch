@@ -47,6 +47,11 @@ struct func_info {
 	param_key_hook *call_back;
 };
 
+static struct func_info illumos_func_table[] = {
+	{ "free", PARAM_FREED, 0, "$" },
+	{ "kmem_free", PARAM_FREED, 0, "$" },
+};
+
 static struct func_info func_table[] = {
 	{ "free", PARAM_FREED, 0, "$" },
 	{ "kfree", PARAM_FREED, 0, "$" },
@@ -640,17 +645,28 @@ static void match_untracked(struct expression *call, int param)
 
 void check_free_strict(int id)
 {
-	struct func_info *info;
+	struct func_info *info, *table;
 	param_key_hook *cb;
 	int i;
+	size_t array_size;
 
 	my_id = id;
 
-	if (option_project != PROJ_KERNEL)
+	switch (option_project) {
+	case PROJ_KERNEL:
+		table = func_table;
+		array_size = ARRAY_SIZE(func_table);
+		break;
+	case PROJ_ILLUMOS_KERNEL:
+		table = illumos_func_table;
+		array_size = ARRAY_SIZE(illumos_func_table);
+		break;
+	default:
 		return;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(func_table); i++) {
-		info = &func_table[i];
+	for (i = 0; i < array_size; i++) {
+		info = &table[i];
 
 		insert_string(&handled, info->name);
 
